@@ -165,7 +165,7 @@
                     <img src="hero-farm.jpg" class="relative rounded-4xl shadow-2xl z-10 w-full object-cover h-150 border-8 border-white" alt="Peternakan">
                     
                     <div class="absolute bottom-10 -left-10 bg-white p-8 rounded-2xl shadow-xl z-20 max-w-sm border-l-8 border-gold-500 hidden md:block">
-                        <p class="text-cemara-950 font-poppins text-xl italic leading-relaxed">"Teknologi bukan pengganti alam, tapi alat untuk merawatnya dengan lebih baik."</p>
+                        <p class="text-cemara-950 font-poppins text-xl italic leading-relaxed">"Teknologi bukan pengganti alam, tapi alat untuk merawatnya dengan lebih baik Alam Juga Merasakan Semuanya."</p>
                     </div>
                 </div>
                 
