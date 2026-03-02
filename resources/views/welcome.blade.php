@@ -171,7 +171,7 @@
                 
                 <div>
                     <h2 class="text-gold-600 font-bold tracking-[0.2em] uppercase text-sm mb-6 flex items-center gap-3">
-                        <span class="w-10 h-0.5 bg-gold-600"></span> Tentang Kami
+                        <span class="w-10 h-0.5 bg-gold-600"></span> Tentang Kamu
                     </h2>
                     <h3 class="text-4xl md:text-5xl font-poppins font-bold text-cemara-950 mb-8 leading-tight">Dedikasi Modernisasi <br>Industri Peternakan</h3>
                     <p class="text-gray-600 mb-8 leading-relaxed text-lg text-justify">
