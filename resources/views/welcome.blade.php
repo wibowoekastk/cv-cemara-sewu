@@ -175,7 +175,7 @@
                     </h2>
                     <h3 class="text-4xl md:text-5xl font-poppins font-bold text-cemara-950 mb-8 leading-tight">Dedikasi Modernisasi <br>Industri Peternakan</h3>
                     <p class="text-gray-600 mb-8 leading-relaxed text-lg text-justify">
-                        CV Cemara Sewu berdiri dengan visi memodernisasi industri peternakan ayam petelur. Melalui SIM (Sistem Informasi Manajemen) ini, Owner dapat memantau setiap unit kandang secara realtime tanpa batasan jarak, memastikan efisiensi pakan, dan kesehatan ternak yang optimal.
+                        CV Cemara Sewu berdiri dengan visi memodernisasi industri peternakan ayam petelur. Melalui SIM (Sistem Informasi Manajemen) ini, Owner dapat memantau setiap unit kandang secara realtime tanpa batasan jarak, memastikan efisiensi pakan, dan kesehatan ternak yang optimal,berjalan dengan baik.
                     </p>
                     
                     <div class="space-y-8 mt-10">
