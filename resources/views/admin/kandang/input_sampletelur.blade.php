@@ -169,8 +169,8 @@
                         </div>
                     </div>
 
-                    <div class="p-6 bg-gray-50 flex justify-end">
-                        <button type="submit" class="px-8 py-3 bg-cemara-600 text-white font-bold rounded-xl hover:bg-cemara-700 transition shadow-lg shadow-cemara-500/30 flex items-center gap-2">
+                    <div class="p-6 bg-gray-50 flex justify-end border-t border-gray-100">
+                        <button type="submit" class="px-8 py-3 bg-gold-500 text-white font-bold rounded-xl hover:bg-gold-600 transition shadow-lg shadow-gold-500/30 flex items-center gap-2">
                             <i class="ph-bold ph-floppy-disk"></i> Simpan Hasil Audit
                         </button>
                     </div>

@@ -5,37 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CV Cemara Sewu</title>
     
-    <!-- 1. Panggil Tailwind via CDN -->
+    <!-- 1. Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- 2. Font Google -->
+    <!-- 2. Google Fonts (SUDAH DITAMBAH POPPINS) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- 3. KONFIGURASI TEMA -->
+    <!-- 3. KONFIGURASI TAILWIND (FONT SUDAH DIPERBAIKI) -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'poppins'],
-                        poppins: ['"Playfair Display"', 'poppins'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        poppins: ['Poppins', 'sans-serif'],
+                        
                     },
                     colors: {
-                        // Palet Warna Premium CV Cemara Sewu
                         cemara: {
                             50: '#f0fdf4',
                             100: '#dcfce7',
                             500: '#22c55e',
-                            800: '#166534', // Hijau Hutan
-                            900: '#14532d', // Hijau Sangat Gelap (Premium)
+                            800: '#166534',
+                            900: '#14532d',
                             950: '#052e16',
                         },
                         gold: {
                             400: '#fbbf24',
                             500: '#f59e0b',
-                            600: '#d97706', // Emas Elegan
+                            600: '#d97706',
                             700: '#b45309',
                         }
                     }
@@ -44,10 +44,16 @@
         }
     </script>
 
+    <!-- 4. STYLE GLOBAL (SUDAH DIBENERIN) -->
     <style>
-        body { font-family: 'Plus Jakarta Sans','poppins'; }
-        h1, h2, h3, h4 { font-family: 'Playfair Display', 'poppins'; }
-        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+        }
+
+        h1, h2, h3, h4 { 
+            font-family: 'Poppins', serif; 
+        }
+
         .glass-nav {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
