@@ -160,7 +160,7 @@
 
                             <!-- Selisih Sabotase -->
                             <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 text-center relative overflow-hidden">
-                                <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-50"></div>
+                                <div class="absolute inset-0 bg-linear-to-t from-gray-900 to-transparent opacity-50"></div>
                                 <p class="text-gray-300 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Status Selisih</p>
                                 <p class="text-3xl font-black text-gray-500 relative z-10" id="displayDeviasi">-</p>
                                 <input type="hidden" name="deviasi_gram" id="inputDeviasi">
