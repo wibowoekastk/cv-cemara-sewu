@@ -46,7 +46,7 @@
 
     <style>
         body { font-family: 'Plus Jakarta Sans','poppins'; }
-        h1, h2, h3, h4 { font-family: 'Playfair Display', 'poppins'; }
+        h1, h2, h3, h4 { font-family: 'poppins', 'sans-serif'; }
         
         .glass-nav {
             background: rgba(255, 255, 255, 0.95);
