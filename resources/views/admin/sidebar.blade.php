@@ -127,7 +127,7 @@
                 </a>
 
                  <a href="{{ route('admin.kandang.input_sampletelur') }}" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-cemara-800/30 rounded-lg transition border-l-2 border-transparent hover:border-gold-400">
-                    <i class="ph ph-chart-bar text-lg"></i>
+                   <i class="ph ph-ruler"></i>
                     <span>Input Sample Telur</span>
                 </a>
 
@@ -278,6 +278,7 @@
             </div>
         </div>        
 
+        <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-6 mb-2 font-sans">Setting Akun</p>
         <a href="{{ route('admin.settings') }}" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-cemara-800/50 rounded-xl transition group">
             <i class="ph ph-users text-xl group-hover:text-gold-400 transition"></i>
             <span class="font-medium">Pengguna (User)</span>

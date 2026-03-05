@@ -31,6 +31,15 @@
         .signature-box { display: table-cell; width: 33%; text-align: center; vertical-align: top; }
         .signature-space { height: 50px; }
         
+        /* Kotak Info Manual */
+        .manual-info-box { margin-top: 20px; width: 40%; border: 1px solid #000; padding: 10px; float: left; background-color: #fff; }
+        .manual-info-box h4 { margin: 0 0 8px 0; font-size: 11px; text-transform: uppercase; border-bottom: 1px dashed #ccc; padding-bottom: 4px; }
+        .manual-info-table { width: 100%; border: none; margin-top: 0; }
+        .manual-info-table tr { background-color: transparent !important; }
+        .manual-info-table td { border: none; padding: 3px 0; font-size: 10px; }
+        
+        .clear-both { clear: both; }
+
         @media print {
             @page { size: landscape; margin: 10mm; } /* Cetak Landscape agar muat banyak kolom */
             .no-print { display: none; }
@@ -207,6 +216,32 @@
         </tfoot>
         @endif
     </table>
+
+    <!-- [BARU] KOTAK DATA TAMBAHAN MANUAL -->
+    @if(request('manual_peti') || request('manual_pecah') || request('manual_konsumsi'))
+    <div class="manual-info-box">
+        <h4>Catatan Tambahan (Manual)</h4>
+        <table class="manual-info-table">
+            <tr>
+                <td width="55%">Total Peti</td>
+                <td width="5%">:</td>
+                <td width="40%" class="font-bold">{{ request('manual_peti') ?: '0' }} Peti</td>
+            </tr>
+            <tr>
+                <td>Total Telur Pecah</td>
+                <td>:</td>
+                <td class="font-bold">{{ request('manual_pecah') ?: '0' }} Kg</td>
+            </tr>
+            <tr>
+                <td>Total Konsumsi Pegawai</td>
+                <td>:</td>
+                <td class="font-bold">{{ request('manual_konsumsi') ?: '0' }} Kg</td>
+            </tr>
+        </table>
+    </div>
+    @endif
+
+    <div class="clear-both"></div>
 
     <!-- Tanda Tangan -->
     <div class="footer-signature">

@@ -64,6 +64,7 @@
             <div class="p-4 md:p-8 w-full max-w-6xl mx-auto" 
                  x-data="{ 
                     reportType: '{{ request('report_type', 'harian') }}', 
+                    lokasi: '{{ request('lokasi', 'all') }}',
                     unitID: '{{ request('unit', 'all') }}',
                     showPreview: {{ count($laporanData ?? []) > 0 ? 'true' : 'false' }}
                  }">
@@ -146,6 +147,20 @@
                                     </div>
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <!-- Pilih Lokasi -->
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Lokasi Farm</label>
+                                            <div class="relative">
+                                                <select name="lokasi" x-model="lokasi" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl appearance-none focus:ring-2 focus:ring-cemara-500 outline-none transition cursor-pointer font-medium text-gray-700">
+                                                    <option value="all">Semua Lokasi</option>
+                                                    @foreach($units->unique('lokasi') as $u)
+                                                        <option value="{{ $u->lokasi }}">{{ $u->lokasi }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <i class="ph-bold ph-caret-down absolute right-4 top-3.5 text-gray-400 pointer-events-none"></i>
+                                            </div>
+                                        </div>
+
                                         <!-- Unit -->
                                         <div>
                                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Unit</label>
@@ -153,7 +168,7 @@
                                                 <select name="unit" x-model="unitID" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl appearance-none focus:ring-2 focus:ring-cemara-500 outline-none transition cursor-pointer font-medium text-gray-700">
                                                     <option value="all">Semua Unit</option>
                                                     @foreach($units as $u)
-                                                        <option value="{{ $u->id }}">{{ $u->nama_unit }}</option>
+                                                        <option value="{{ $u->id }}" x-show="lokasi === 'all' || lokasi === '{{ $u->lokasi }}'">{{ $u->nama_unit }}</option>
                                                     @endforeach
                                                 </select>
                                                 <i class="ph-bold ph-caret-down absolute right-4 top-3.5 text-gray-400 pointer-events-none"></i>
@@ -161,7 +176,7 @@
                                         </div>
 
                                         <!-- Filter Kandang -->
-                                        <div x-show="reportType === 'harian' && unitID !== 'all'">
+                                        <div x-show="reportType === 'harian' && unitID !== 'all'" class="md:col-span-2">
                                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Pilih Kandang</label>
                                             <div class="relative">
                                                 <select name="kandang" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl appearance-none focus:ring-2 focus:ring-cemara-500 outline-none transition cursor-pointer font-medium text-gray-700">
@@ -177,7 +192,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- [BARU] Filter Batch / Siklus -->
+                                    <!-- Filter Batch / Siklus -->
                                     <div class="mt-4 pt-4 border-t border-gray-100">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Pilih Batch / Siklus (Opsional)</label>
                                         <div class="relative">
@@ -224,7 +239,7 @@
                                                 <th class="px-4 py-3">Tanggal</th>
                                                 <th class="px-4 py-3">Kandang</th>
                                                 
-                                                <!-- [BARU] Kolom Batch di Preview -->
+                                                <!-- Kolom Batch di Preview -->
                                                 <th class="px-4 py-3">Batch / Siklus</th>
                                                 
                                                 <th class="px-4 py-3 text-center">Mati</th>
@@ -245,7 +260,7 @@
                                                     <span class="text-xs">{{ $data->kandang->unit->nama_unit ?? '-' }}</span>
                                                 </td>
                                                 
-                                                <!-- [BARU] Data Batch Preview -->
+                                                <!-- Data Batch Preview -->
                                                 <td class="px-4 py-3 text-xs text-gray-500">
                                                     @if($data->siklus)
                                                         <span class="block text-blue-600 font-bold">Batch {{ $data->siklus->tanggal_chick_in->format('Y') }}</span>
@@ -286,40 +301,40 @@
                         <!-- RIGHT: Opsi Cetak & Download -->
                         <div class="space-y-6">
                             
-                            <!-- Panel Opsi -->
+                            <!-- Panel Dokumen Khusus Grafik -->
                             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                                <h3 class="text-sm font-bold text-gray-800 mb-4 uppercase tracking-wide border-b border-gray-100 pb-2">Opsi Dokumen</h3>
-                                
-                                <div class="space-y-3">
-                                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition group select-none">
-                                        <div class="relative flex items-center justify-center w-5 h-5">
-                                             <input type="checkbox" checked class="w-5 h-5 text-cemara-600 rounded focus:ring-cemara-500 border-gray-300 checked:bg-cemara-600 checked:border-cemara-600 transition-all cursor-pointer">
-                                            <i class="ph-bold ph-check text-white absolute text-xs opacity-0 peer-checked:opacity-100 pointer-events-none"></i>
-                                        </div>
-                                        <div class="flex flex-col cursor-pointer">
-                                            <span class="text-sm font-bold text-gray-700 group-hover:text-cemara-700 transition">Sertakan Grafik</span>
-                                            <span class="text-xs text-gray-400">Visualisasi tren data</span>
-                                        </div>
-                                    </label>
-                                </div>
+                                <h3 class="text-sm font-bold text-gray-800 mb-4 uppercase tracking-wide border-b border-gray-100 pb-2">Dokumen Grafik</h3>
+                                <p class="text-xs text-gray-500 mb-4 leading-relaxed">
+                                    Unduh dokumen PDF yang hanya berisi grafik visualisasi data berdasarkan filter.
+                                </p>
+                                <button type="submit" name="download_chart_pdf" value="true" class="w-full py-3 rounded-xl border-2 border-cemara-600 text-cemara-700 font-bold hover:bg-cemara-50 transition flex items-center justify-center gap-2 text-sm group">
+                                    <i class="ph-bold ph-chart-line-up group-hover:scale-110 transition-transform"></i>
+                                    Download Chart PDF
+                                </button>
                             </div>
-                            
+
                             <!-- Input Manual untuk Cetak (Muncul jika ada data) -->
                             @if(isset($laporanData) && count($laporanData) > 0)
                             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                                <h3 class="text-sm font-bold text-gold-600 mb-4 uppercase tracking-wide border-b border-gray-100 pb-2">Input Manual (Cetak)</h3>
-                                <div class="space-y-3">
+                                <h3 class="text-sm font-bold text-gold-600 mb-4 uppercase tracking-wide border-b border-gray-100 pb-2">
+                                    <i class="ph-fill ph-keyboard text-lg"></i> Input Manual (Cetak)
+                                </h3>
+                                <p class="text-[10px] text-gray-500 mb-4 leading-relaxed">
+                                    Isi data tambahan di bawah ini. Data ini akan disisipkan otomatis ke dalam PDF Laporan saat Anda klik Download.
+                                </p>
+                                <div class="space-y-4">
                                     <div>
-                                        <label class="text-xs font-bold text-gray-500 mb-1 block">Total Peti</label>
-                                        <input type="number" name="manual_peti" class="w-full p-2 border border-gray-200 rounded-lg text-sm" placeholder="0">
+                                        <label class="text-xs font-bold text-gray-600 mb-1 block">Total Peti</label>
+                                        <!-- Tambahkan value request agar nilai tidak hilang saat diklik/refresh -->
+                                        <input type="number" name="manual_peti" value="{{ request('manual_peti') }}" class="w-full p-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition" placeholder="Contoh: 10">
                                     </div>
                                     <div>
-                                        <label class="text-xs font-bold text-gray-500 mb-1 block">Total Pecah (Kg)</label>
-                                        <input type="number" step="0.01" name="manual_pecah" class="w-full p-2 border border-gray-200 rounded-lg text-sm" placeholder="0.00">
+                                        <label class="text-xs font-bold text-gray-600 mb-1 block">Total Pecah (Kg)</label>
+                                        <input type="number" step="0.01" name="manual_pecah" value="{{ request('manual_pecah') }}" class="w-full p-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition" placeholder="Contoh: 2.5">
                                     </div>
                                     <div>
-                                        <label class="text-xs font-bold text-gray-500 mb-1 block">Total Konsumsi (Kg)</label>
-                                        <input type="number" step="0.01" name="manual_konsumsi" class="w-full p-2 border border-gray-200 rounded-lg text-sm" placeholder="0.00">
+                                        <label class="text-xs font-bold text-gray-600 mb-1 block">Total Konsumsi (Kg)</label>
+                                        <input type="number" step="0.01" name="manual_konsumsi" value="{{ request('manual_konsumsi') }}" class="w-full p-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition" placeholder="Contoh: 1.2">
                                     </div>
                                 </div>
                             </div>
@@ -330,16 +345,16 @@
                                 <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/20">
                                     <i class="ph-fill ph-file-pdf text-3xl text-white"></i>
                                 </div>
-                                <h3 class="font-bold text-lg mb-1 font-poppins">Siap Mengunduh</h3>
+                                <h3 class="font-bold text-lg mb-1">Siap Mengunduh</h3>
                                 <p class="text-cemara-200 text-xs mb-6 px-2 leading-relaxed">
-                                    {{ isset($laporanData) ? count($laporanData) : 0 }} Data ditemukan. Klik unduh untuk menyimpan PDF.
+                                    {{ isset($laporanData) ? count($laporanData) : 0 }} Data ditemukan. Isi form manual di atas (opsional), lalu klik unduh untuk menyimpan PDF.
                                 </p>
                                 
                                 <button type="submit" name="download_pdf" value="true" 
                                         {{ (!isset($laporanData) || count($laporanData) == 0) ? 'disabled' : '' }}
                                         class="w-full py-3.5 rounded-xl font-bold transition shadow-md flex items-center justify-center gap-2 group {{ (!isset($laporanData) || count($laporanData) == 0) ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-white text-cemara-900 hover:bg-gray-100' }}">
                                     <i class="ph-bold ph-download-simple group-hover:scale-110 transition-transform"></i>
-                                    Download PDF
+                                    Download Data PDF
                                 </button>
                             </div>
 
