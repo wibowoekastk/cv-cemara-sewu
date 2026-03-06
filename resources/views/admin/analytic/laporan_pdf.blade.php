@@ -301,18 +301,6 @@
                         <!-- RIGHT: Opsi Cetak & Download -->
                         <div class="space-y-6">
                             
-                            <!-- Panel Dokumen Khusus Grafik -->
-                            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                                <h3 class="text-sm font-bold text-gray-800 mb-4 uppercase tracking-wide border-b border-gray-100 pb-2">Dokumen Grafik</h3>
-                                <p class="text-xs text-gray-500 mb-4 leading-relaxed">
-                                    Unduh dokumen PDF yang hanya berisi grafik visualisasi data berdasarkan filter.
-                                </p>
-                                <button type="submit" name="download_chart_pdf" value="true" class="w-full py-3 rounded-xl border-2 border-cemara-600 text-cemara-700 font-bold hover:bg-cemara-50 transition flex items-center justify-center gap-2 text-sm group">
-                                    <i class="ph-bold ph-chart-line-up group-hover:scale-110 transition-transform"></i>
-                                    Download Chart PDF
-                                </button>
-                            </div>
-
                             <!-- Input Manual untuk Cetak (Muncul jika ada data) -->
                             @if(isset($laporanData) && count($laporanData) > 0)
                             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
