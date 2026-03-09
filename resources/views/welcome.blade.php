@@ -167,7 +167,7 @@
                     <div class="absolute -top-10 -left-10 w-40 h-40 bg-gold-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
                     <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-cemara-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
                     
-                    <!-- DIGANTI DI SINI: Menggunakan gambar lokal 'hero-farm.png' -->
+                    <!-- DIGANTI DI SINI: Jangan ganti ganti cukup 1 untuk selamanya -->
                     <img src="hero-farm.jpg" class="relative rounded-4xl shadow-2xl z-10 w-full object-cover h-150 border-8 border-white" alt="Peternakan">
                     
                     <div class="absolute bottom-10 -left-10 bg-white p-8 rounded-2xl shadow-xl z-20 max-w-sm border-l-8 border-gold-500 hidden md:block">
