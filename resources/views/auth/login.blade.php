@@ -110,7 +110,7 @@
             </div>
 
             <div class="text-center mb-10">
-                <h2 class="font-poppins text-3xl font-bold text-gray-900 mb-2">Selamat Datang</h2>
+                <h2 class="text-cemara-100 text-3xl font-bold text-gray-900 mb-2">Selamat Datang</h2>
                 <p class="text-gray-500">Silakan login untuk mengakses dashboard.</p>
             </div>
 
