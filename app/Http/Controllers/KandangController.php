@@ -9,7 +9,6 @@ use App\Models\Siklus;
 use App\Models\Batch; // [BARU] Import Model Batch
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class KandangController extends Controller
@@ -143,7 +142,7 @@ class KandangController extends Controller
                     'tanggal_chick_in' => $request->tgl_masuk ?? now(),
                     'populasi_awal' => $request->stok_awal,
                     'umur_awal_minggu' => $request->umur_awal ?? 18,
-                    'jenis_ayam' => 'Pullet', // Default
+                    'jenis_ayam' => 'Layer', // Default
                     'status' => 'Aktif',
                 ]);
             }
@@ -152,7 +151,7 @@ class KandangController extends Controller
         return redirect()->back()->with('success', 'Kandang baru berhasil ditambahkan.');
     }
 
-    // Update Kandang (Fitur Edit Data Fisik)
+    // Update Kandang (Fitur Edit Data Fisik & SO Populasi)
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -160,7 +159,8 @@ class KandangController extends Controller
             'kapasitas'    => 'required|integer',
             'status'       => 'required|string',
             'tgl_masuk'    => 'nullable|date',      
-            'umur_awal'    => 'nullable|integer',   
+            'umur_awal'    => 'nullable|integer',
+            'stok_saat_ini'=> 'nullable|integer|min:0', // [BARU] Validasi untuk SO Populasi
         ]);
 
         $kandang = Kandang::findOrFail($id);
@@ -170,10 +170,12 @@ class KandangController extends Controller
             'kapasitas'    => $request->kapasitas,
             'status'       => $request->status,
             'tgl_masuk'    => $request->tgl_masuk,  
-            'umur_awal'    => $request->umur_awal   
+            'umur_awal'    => $request->umur_awal,
+            // [BARU] Update Stok Saat Ini (SO) jika ada input, jika tidak biarkan yang lama
+            'stok_saat_ini'=> $request->filled('stok_saat_ini') ? $request->stok_saat_ini : $kandang->stok_saat_ini 
         ]);
 
-        return redirect()->back()->with('success', 'Data Kandang berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Data Kandang dan Populasi (SO) berhasil diperbarui.');
     }
 
     // Hapus Kandang

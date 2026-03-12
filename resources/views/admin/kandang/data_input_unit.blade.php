@@ -270,8 +270,8 @@
                                                 </button>
                                             @endif
 
-                                            <!-- Tombol Edit Master Kandang -->
-                                            <button @click="openEditModal('kandang', {{ $kandang }})" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit Data Fisik Kandang">
+                                            <!-- Tombol Edit Master Kandang (Tempat Edit SO) -->
+                                            <button @click="openEditModal('kandang', {{ $kandang }})" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit Kandang / SO">
                                                 <i class="ph-bold ph-pencil-simple"></i>
                                             </button>
 
@@ -314,7 +314,7 @@
              @click.away="showEditModal = false">
             
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 class="font-bold text-lg text-gray-800" x-text="editType === 'unit' ? 'Edit Data Unit' : 'Edit Data Fisik Kandang'"></h3>
+                <h3 class="font-bold text-lg text-gray-800" x-text="editType === 'unit' ? 'Edit Data Unit' : 'Edit Kandang & Opname Populasi'"></h3>
                 <button @click="showEditModal = false" class="text-gray-400 hover:text-gray-600 transition">
                     <i class="ph-bold ph-x text-xl"></i>
                 </button>
@@ -341,26 +341,39 @@
                     </div>
                 </form>
 
-                <!-- FORM EDIT KANDANG (Hanya Fisik) -->
+                <!-- [UPDATE] FORM EDIT KANDANG (Termasuk SO Populasi) -->
                 <form x-show="editType === 'kandang'" method="POST" :action="`{{ url('admin/kandang/update') }}/${editData.id}`">
                     @csrf
                     @method('PUT')
                     <div class="space-y-4">
-                        <div class="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-xs mb-3 border border-yellow-200">
-                            <i class="ph-bold ph-info"></i> Edit ini hanya mengubah data fisik kandang. Untuk mengubah populasi/ayam, gunakan tombol Chick-In/Afkir.
+                        <div class="bg-blue-50 text-blue-800 p-3 rounded-xl text-xs mb-3 border border-blue-200">
+                            <i class="ph-bold ph-info"></i> <b>Fitur Stock Opname (SO):</b> Anda dapat menyesuaikan <b>Populasi Aktif</b> secara manual jika terdapat selisih hasil perhitungan fisik di kandang.
                         </div>
+                        
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Kandang</label>
-                            <input type="text" name="nama_kandang" x-model="editData.nama_kandang" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 outline-none">
+                            <input type="text" name="nama_kandang" x-model="editData.nama_kandang" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gold-500 outline-none">
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Kapasitas Maksimal</label>
-                            <input type="number" name="kapasitas" x-model="editData.kapasitas" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 outline-none">
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Kapasitas Maksimal</label>
+                                <input type="number" name="kapasitas" x-model="editData.kapasitas" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gold-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-blue-600 uppercase mb-1">Populasi Aktif (SO)</label>
+                                <input type="number" name="stok_saat_ini" x-model="editData.stok_saat_ini" class="w-full px-4 py-3 border border-blue-300 bg-blue-50 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-blue-700 shadow-sm" :readonly="editData.status !== 'aktif'">
+                            </div>
                         </div>
+                        
+                        <!-- Hidden Inputs untuk mempertahankan data lama -->
+                        <input type="hidden" name="status" x-model="editData.status">
+                        <input type="hidden" name="tgl_masuk" x-model="editData.tgl_masuk">
+                        <input type="hidden" name="umur_awal" x-model="editData.umur_awal">
                     </div>
-                    <div class="mt-6 flex justify-end gap-2">
+                    <div class="mt-6 flex justify-end gap-2 pt-4 border-t border-gray-100">
                         <button type="button" @click="showEditModal = false" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium transition">Batal</button>
-                        <button type="submit" class="px-6 py-2 bg-gold-500 text-white rounded-lg font-bold hover:bg-gold-600 transition">Simpan</button>
+                        <button type="submit" class="px-6 py-2 bg-gold-500 text-white rounded-lg font-bold hover:bg-gold-600 transition shadow-md">Simpan Perubahan</button>
                     </div>
                 </form>
             </div>
@@ -394,7 +407,6 @@
 
             <div class="p-6">
                 <!-- FORM CHICK IN -->
-                <!-- Menggunakan Dynamic Action URL -->
                 <form method="POST" :action="`{{ url('admin/kandang') }}/${chickInData.id}/chick-in`">
                     @csrf
                     
@@ -407,7 +419,7 @@
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Jenis Ayam</label>
                                 <select name="jenis_ayam" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-cemara-500 outline-none">
-                                    <option value="Pullet">Pullet (Dara)</option>
+                                    <option value="Layer">Layer (Dara)</option>
                                     <option value="DOC">DOC (Anakan)</option>
                                 </select>
                             </div>
@@ -515,9 +527,7 @@
 
         // AlpineJS Helper Functions
         document.addEventListener('alpine:init', () => {
-            Alpine.data('modalHandler', () => ({
-                // ... logic moved to x-data in body
-            }))
+            Alpine.data('modalHandler', () => ({}))
         });
 
         // Global functions to trigger modals from onClick

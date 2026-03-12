@@ -324,7 +324,7 @@
                                     </div>
                                     
                                     <!-- Hidden Fields for Defaults -->
-                                    <input type="hidden" name="jenis_ayam" value="Pullet">
+                                    <input type="hidden" name="jenis_ayam" value="Layer">
 
                                 </div>
                                 <div class="mt-6">

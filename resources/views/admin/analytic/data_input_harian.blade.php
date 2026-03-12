@@ -174,7 +174,7 @@
                                             @else
                                                 <span class="block font-bold text-blue-600">Batch {{ $row->siklus->tanggal_chick_in->format('Y') }}</span>
                                             @endif
-                                            <span class="text-gray-400">{{ $row->siklus->jenis_ayam }}</span>
+                                            <!-- Tulisan jenis ayam dihapus di sini agar lebih bersih -->
                                         @else
                                             <span class="text-gray-300 italic text-[10px]">No Batch</span>
                                         @endif

@@ -38,7 +38,7 @@ class SiklusController extends Controller
                 'kandang_id' => $kandang->id,
                 'batch_id' => $request->batch_id, // Simpan ID Batch
                 'tanggal_chick_in' => $request->tanggal_chick_in,
-                'jenis_ayam' => $request->jenis_ayam ?? 'Pullet',
+                'jenis_ayam' => $request->jenis_ayam ?? 'Layer',
                 'populasi_awal' => $request->populasi_awal,
                 'umur_awal_minggu' => $request->umur_awal_minggu,
                 'status' => 'Aktif',

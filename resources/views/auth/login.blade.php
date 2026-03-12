@@ -62,11 +62,10 @@
 
         <!-- Content -->
         <div class="relative z-10 p-12 text-white max-w-lg">
-            <div class="w-10 h-10  rounded-lg flex items-center justify-center shadow-md shadow-gold-500/20 overflow-hidden shrink-0">
-                     <!-- Gunakan asset() untuk memanggil gambar dari folder public -->
-                     <!-- Pastikan file cms.png ada di dalam folder public/ -->
-                    <img src="{{ asset('cms.png') }}" alt="Logo" class="w-full h-full object-cover">
-                    </div>
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center shadow-md shadow-gold-500/20 overflow-hidden shrink-0 mb-6">
+                <!-- Gunakan asset() untuk memanggil gambar dari folder public -->
+                <img src="{{ asset('cms.png') }}" alt="Logo" class="w-full h-full object-cover">
+            </div>
             <h1 class="font-poppins text-5xl font-bold mb-6 leading-tight">
                 Sistem Informasi <br>
                 <span class="text-gold-400">Manajemen Peternakan</span>
@@ -87,10 +86,30 @@
                 <p class="text-sm italic text-gray-200">"Kualitas telur terbaik dimulai dari manajemen kandang yang cerdas dan terukur."</p>
             </div>
         </div>
+
+        <!-- [BARU] SVG Wavy Separator dengan Animasi Bergelombang -->
+        <div class="absolute top-0 right-0 h-full w-24 md:w-32 translate-x-px pointer-events-none z-30">
+            <svg class="h-full w-full text-gray-50 fill-current" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <!-- Layer Belakang (Ombak Bayangan Transparan) -->
+                <path class="text-white/40" d="M100,0 L100,100 L0,100 C30,70 50,30 0,0 Z">
+                    <animate attributeName="d" dur="7s" repeatCount="indefinite"
+                             values="M100,0 L100,100 L0,100 C30,70 50,30 0,0 Z;
+                                     M100,0 L100,100 L0,100 C50,80 30,20 0,0 Z;
+                                     M100,0 L100,100 L0,100 C30,70 50,30 0,0 Z" />
+                </path>
+                <!-- Layer Utama (Ombak Solid menyatu dengan Background Kanan) -->
+                <path d="M100,0 L100,100 L0,100 C50,75 30,25 0,0 Z">
+                    <animate attributeName="d" dur="5s" repeatCount="indefinite"
+                             values="M100,0 L100,100 L0,100 C50,75 30,25 0,0 Z;
+                                     M100,0 L100,100 L0,100 C30,65 50,35 0,0 Z;
+                                     M100,0 L100,100 L0,100 C50,75 30,25 0,0 Z" />
+                </path>
+            </svg>
+        </div>
     </div>
 
     <!-- RIGHT SIDE: Login Form -->
-    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 relative overflow-y-auto">
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 relative overflow-y-auto z-10">
         
         <!-- Tombol Kembali (Mobile Only) -->
         <a href="/" class="lg:hidden absolute top-6 left-6 text-gray-500 hover:text-cemara-900 flex items-center gap-2 transition">
@@ -98,19 +117,18 @@
             <span class="text-sm font-semibold">Kembali</span>
         </a>
 
-        <div class="w-full max-w-md bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-gray-100 mt-10 lg:mt-0">
+        <div class="w-full max-w-md bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-gray-100 mt-10 lg:mt-0 relative z-20">
             
             <!-- Mobile Logo -->
             <div class="lg:hidden flex justify-center mb-8">
-                <div class="w-10 h-10  rounded-lg flex items-center justify-center shadow-md shadow-gold-500/20 overflow-hidden shrink-0">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center shadow-md shadow-gold-500/20 overflow-hidden shrink-0">
                      <!-- Gunakan asset() untuk memanggil gambar dari folder public -->
-                     <!-- Pastikan file cms.png ada di dalam folder public/ -->
                     <img src="{{ asset('cms.png') }}" alt="Logo" class="w-full h-full object-cover">
-                    </div>
+                </div>
             </div>
 
             <div class="text-center mb-10">
-                <h2 class="text-cemara-100 text-3xl font-bold text-gray-900 mb-2">Selamat Datang</h2>
+                <h2 class="font-poppins text-3xl font-bold text-gray-900 mb-2">Selamat Datang</h2>
                 <p class="text-gray-500">Silakan login untuk mengakses dashboard.</p>
             </div>
 
@@ -185,7 +203,7 @@
         
         <!-- Footer Info Mobile -->
         <div class="absolute bottom-6 text-center w-full text-xs text-gray-400 lg:hidden">
-            <?php echo date('© Y'); ?> CV Cemara Sewu. All rights reserved. Erkprd®
+            <?php echo date('Y'); ?> © CV Cemara Sewu. All rights reserved. Erkprd®
         </div>
     </div>
 
@@ -202,12 +220,6 @@
                 input.type = "password";
                 icon.classList.replace('ph-eye-slash', 'ph-eye');
             }
-        }
-
-        // Helper untuk Demo (Opsional)
-        function fillLogin(email) {
-            document.querySelector('input[name="email"]').value = email;
-            document.getElementById('passwordInput').value = 'password';
         }
     </script>
 

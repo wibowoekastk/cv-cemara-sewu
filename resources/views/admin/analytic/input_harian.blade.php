@@ -98,7 +98,7 @@
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                            <!-- Tanggal -->
+                            <!-- Tanggal (Bisa Backdate) -->
                             <div class="lg:col-span-1">
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Tanggal Input</label>
                                 <input type="date" name="tanggal" id="inputDate" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cemara-500 outline-none transition font-medium" required>
@@ -187,6 +187,17 @@
                                         <label class="block text-xs font-semibold text-gray-500 mb-1">Afkir (Ekor)</label>
                                         <input type="number" id="inputAfkir" name="afkir" placeholder="0" class="w-full px-4 py-3 bg-orange-50 border border-orange-100 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition text-orange-700 font-bold placeholder-orange-300" oninput="hitungOtomatis()" required>
                                     </div>
+                                </div>
+
+                                <!-- [BARU] Indikator Deplesi Harian Beranimasi -->
+                                <div class="mt-2 bg-red-50/50 p-3 rounded-xl border border-red-100 flex justify-between items-center">
+                                    <div>
+                                        <span class="text-xs text-red-600 font-bold uppercase tracking-wide">Deplesi Harian</span>
+                                        <p class="text-[10px] text-red-400 mt-0.5">(Mati+Afkir) / Populasi Pagi</p>
+                                    </div>
+                                    <span class="text-lg font-bold text-red-700 transition-colors duration-300" id="wrapperDeplesi">
+                                        <span id="hasilDeplesi">0.00</span>%
+                                    </span>
                                 </div>
 
                                 <!-- [UPDATE] Input Keterangan Kematian (Ditambahkan Sesuai Request) -->
@@ -317,7 +328,7 @@
         </main>
     </div>
 
-    <!-- Script SweetAlert & Logic -->
+    <!-- Script Logic -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         function filterUnitData() {
@@ -331,38 +342,32 @@
             kandangSelect.innerHTML = '<option value="" disabled selected>Pilih Kandang...</option>';
             kandangSelect.disabled = true;
             document.getElementById('displayLokasi').value = '';
-            document.getElementById('displayBatch').value = '-'; // Reset Batch
+            document.getElementById('displayBatch').value = '-'; 
 
             // 2. Reset Pakan
             pakanSelect.innerHTML = '<option value="" disabled selected>Pilih Pakan...</option>';
             pakanSelect.disabled = true;
 
             if (selectedOption) {
-                // A. Isi Lokasi
                 const lokasi = selectedOption.getAttribute('data-lokasi');
                 if(lokasi) document.getElementById('displayLokasi').value = lokasi;
 
-                // B. Populate Kandang
                 if (selectedOption.getAttribute('data-kandangs')) {
                     const kandangs = JSON.parse(selectedOption.getAttribute('data-kandangs'));
                     kandangs.forEach(k => {
                         const option = document.createElement('option');
                         option.value = k.id;
-                        
-                        // Cek Status Kandang
                         if (k.status === 'aktif' || k.stok_saat_ini > 0) {
                             option.text = k.nama_kandang;
                         } else {
-                            option.text = `🚫 ${k.nama_kandang} (Kosong/No Batch)`;
+                            option.text = `🚫 ${k.nama_kandang} (Kosong)`;
                             option.disabled = true;
                         }
-                        
                         kandangSelect.appendChild(option);
                     });
                     kandangSelect.disabled = false;
                 }
 
-                // C. Populate Pakan (STOK UNIT ONLY)
                 if (selectedOption.getAttribute('data-pakans')) {
                     const stokPakans = JSON.parse(selectedOption.getAttribute('data-pakans'));
                     let adaStok = false;
@@ -382,14 +387,11 @@
                     } else {
                         pakanSelect.innerHTML = '<option value="" disabled>Stok Pakan Kosong!</option>';
                     }
-                } else {
-                     pakanSelect.innerHTML = '<option value="" disabled>Data Pakan Tidak Ditemukan</option>';
                 }
             }
             updatePopulasiAwal();
         }
 
-        // Fetch Data Kumulatif & Stok via AJAX
         function fetchKandangStats() {
             const kandangID = document.getElementById('inputKandang').value;
             if(!kandangID) return;
@@ -402,13 +404,11 @@
                     document.getElementById('cumButirPrev').value = data.cum_butir_sebelumnya;
                     document.getElementById('cumKgPrev').value = data.cum_kg_sebelumnya;
                     
-                    // Tampilkan Nama Batch
                     document.getElementById('displayBatch').value = data.batch_name;
 
                     document.getElementById('displayStokAwalMaster').innerText = data.stok_awal.toLocaleString('id-ID');
                     document.getElementById('displayPopulasiSaatIni').innerText = data.stok_saat_ini.toLocaleString('id-ID');
 
-                    // Reset Input Harian
                     document.getElementById('inputMati').value = '';
                     document.getElementById('inputAfkir').value = '';
                     
@@ -442,6 +442,25 @@
             let cumButirPrev = parseFloat(document.getElementById('cumButirPrev').value) || 0;
             let cumKgPrev = parseFloat(document.getElementById('cumKgPrev').value) || 0;
 
+            // [BARU] Kalkulasi Deplesi Harian & Smart Warning
+            let deplesiHarian = 0;
+            let textDeplesi = document.getElementById('hasilDeplesi');
+            let wrapperDeplesi = document.getElementById('wrapperDeplesi');
+
+            if (populasiHidup > 0) {
+                deplesiHarian = ((mati + afkir) / populasiHidup) * 100;
+            }
+            textDeplesi.innerText = deplesiHarian.toFixed(2);
+
+            // Logic Warning: Jika kematian di atas 0.1% per hari, teks merah berkedip
+            if(deplesiHarian > 0.1) {
+                wrapperDeplesi.classList.remove('text-red-700');
+                wrapperDeplesi.classList.add('text-red-600', 'animate-pulse');
+            } else {
+                wrapperDeplesi.classList.add('text-red-700');
+                wrapperDeplesi.classList.remove('text-red-600', 'animate-pulse');
+            }
+
             // Sisa Populasi
             let sisaPopulasi = populasiHidup - mati - afkir;
             if (sisaPopulasi < 0) sisaPopulasi = 0;
@@ -462,7 +481,7 @@
             let hd = (sisaPopulasi > 0) ? (telurButir / sisaPopulasi) * 100 : 0;
             document.getElementById('hasilHD').innerText = hd.toFixed(1);
 
-            // HH (Hen House)
+            // HH
             let totalCumButir = cumButirPrev + telurButir;
             let totalCumKg = cumKgPrev + telurKg;
             let hhButir = (stokAwalMaster > 0) ? totalCumButir / stokAwalMaster : 0;
@@ -472,7 +491,6 @@
             document.getElementById('hasilHHKg').innerText = hhKg.toFixed(2);
         }
 
-        // Reset Form
         function resetForm() {
             Swal.fire({
                 title: 'Batalkan Input?',
@@ -481,11 +499,11 @@
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, Reset',
-                cancelButtonText: 'Tidak'
+                confirmButtonText: 'Ya, Reset'
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById('dailyInputForm').reset();
+                    // Set date to today
                     const dateInput = document.getElementById('inputDate');
                     const today = new Date();
                     const yyyy = today.getFullYear();
@@ -494,8 +512,7 @@
                     dateInput.value = `${yyyy}-${mm}-${dd}`;
                     
                     document.getElementById('inputUnit').selectedIndex = 0;
-                    filterUnitData(); // Reset dropdowns
-                    Swal.fire('Dibatalkan!', 'Formulir telah dikosongkan.', 'success');
+                    filterUnitData();
                 }
             })
         }
@@ -509,13 +526,12 @@
             const dd = String(today.getDate()).padStart(2, '0');
             const todayString = `${yyyy}-${mm}-${dd}`;
             
-            if(dateInput) { dateInput.value = todayString; dateInput.max = todayString; }
+            if(dateInput) { dateInput.value = todayString; dateInput.max = todayString; } // max=today mencegah input hari esok
             if(displayDate) {
                 const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
                 displayDate.innerText = today.toLocaleDateString('id-ID', options);
             }
             
-            // Trigger awal
             document.getElementById('inputUnit').selectedIndex = 0;
             filterUnitData();
         });

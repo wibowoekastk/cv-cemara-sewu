@@ -18,7 +18,7 @@ return new class extends Migration
             
             // Info Batch Dasar
             $table->date('tanggal_chick_in');
-            $table->string('jenis_ayam')->default('Pullet'); // Pullet / DOC
+            $table->string('jenis_ayam')->default('Layer'); // Layer / DOC
             $table->integer('populasi_awal'); // Jumlah ayam saat masuk
             $table->integer('umur_awal_minggu')->default(18); // Umur ayam (minggu) saat masuk kandang
             $table->decimal('harga_satuan', 12, 2)->nullable(); // Harga beli per ekor (opsional)

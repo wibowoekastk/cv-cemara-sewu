@@ -190,6 +190,17 @@
                                     </div>
                                 </div>
 
+                                <!-- [BARU] Indikator Deplesi Harian Beranimasi -->
+                                <div class="mt-2 bg-red-50/50 p-3 rounded-xl border border-red-100 flex justify-between items-center">
+                                    <div>
+                                        <span class="text-xs text-red-600 font-bold uppercase tracking-wide">Deplesi Harian</span>
+                                        <p class="text-[10px] text-red-400 mt-0.5">(Mati+Afkir) / Populasi Pagi</p>
+                                    </div>
+                                    <span class="text-lg font-bold text-red-700 transition-colors duration-300" id="wrapperDeplesi">
+                                        <span id="hasilDeplesi">0.00</span>%
+                                    </span>
+                                </div>
+
                                 <!-- Input Keterangan Kematian -->
                                 <div>
                                     <label class="block text-xs font-semibold text-gray-500 mb-1">Penyebab Kematian / Keterangan</label>
@@ -426,6 +437,25 @@
             let populasiHidup = parseFloat(document.getElementById('populasiSaatIni').value) || 0;
             let cumButirPrev = parseFloat(document.getElementById('cumButirPrev').value) || 0;
             let cumKgPrev = parseFloat(document.getElementById('cumKgPrev').value) || 0;
+
+            // [BARU] Kalkulasi Deplesi Harian & Smart Warning
+            let deplesiHarian = 0;
+            let textDeplesi = document.getElementById('hasilDeplesi');
+            let wrapperDeplesi = document.getElementById('wrapperDeplesi');
+
+            if (populasiHidup > 0) {
+                deplesiHarian = ((mati + afkir) / populasiHidup) * 100;
+            }
+            textDeplesi.innerText = deplesiHarian.toFixed(2);
+
+            // Logic Warning: Jika kematian di atas 0.1% per hari, teks merah berkedip
+            if(deplesiHarian > 0.1) {
+                wrapperDeplesi.classList.remove('text-red-700');
+                wrapperDeplesi.classList.add('text-red-600', 'animate-pulse');
+            } else {
+                wrapperDeplesi.classList.add('text-red-700');
+                wrapperDeplesi.classList.remove('text-red-600', 'animate-pulse');
+            }
 
             // A. Sisa Populasi
             let sisaPopulasi = populasiHidup - mati - afkir;
