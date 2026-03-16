@@ -109,6 +109,13 @@
                         <span>{{ session('success') }}</span>
                     </div>
                 @endif
+                
+                @if(session('error'))
+                    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3">
+                        <i class="ph-fill ph-warning-circle text-xl"></i>
+                        <span>{{ session('error') }}</span>
+                    </div>
+                @endif
 
                 <!-- Data Table -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -180,7 +187,7 @@
                                         @endif
                                     </td>
                                     
-                                    <!-- [UPDATE] KOLOM MATI DENGAN TOOLTIP -->
+                                    <!-- KOLOM MATI DENGAN TOOLTIP -->
                                     <td class="px-4 py-3 text-center border-gray-100">
                                         <div class="group/tooltip relative inline-block">
                                             <!-- Angka Mati -->
@@ -250,7 +257,8 @@
                                     <!-- Aksi -->
                                     <td class="px-4 py-3 text-center sticky right-0 bg-white z-10 shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.05)] group-hover:bg-gray-50">
                                         <div class="flex items-center justify-center gap-2">
-                                            <button @click="editData = {{ json_encode($row) }}; showEditModal = true" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit">
+                                            <!-- [UPDATE] Tombol Edit Memotong Tanggal agar Sesuai Input HTML -->
+                                            <button @click="editData = {{ json_encode($row) }}; editData.tanggal = editData.tanggal ? editData.tanggal.substring(0, 10) : ''; showEditModal = true" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit">
                                                 <i class="ph-bold ph-pencil-simple"></i>
                                             </button>
                                             <button onclick="confirmDelete('{{ route('admin.analytic.delete', $row->id) }}')" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition" title="Hapus">
@@ -299,6 +307,12 @@
                             </h3>
                             
                             <div class="grid grid-cols-2 gap-4">
+                                <!-- [BARU] Input Ubah Tanggal -->
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-bold text-gray-500 mb-1">Tanggal Laporan</label>
+                                    <input type="date" name="tanggal" x-model="editData.tanggal" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-cemara-500 outline-none" required>
+                                </div>
+
                                 <div>
                                     <label class="block text-xs font-bold text-gray-500 mb-1">Mati (Ekor)</label>
                                     <input type="number" name="mati" x-model="editData.mati" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-cemara-500 outline-none">
@@ -308,7 +322,7 @@
                                     <input type="number" name="afkir" x-model="editData.afkir" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-cemara-500 outline-none">
                                 </div>
                                 
-                                <!-- [UPDATE] Input Edit Keterangan -->
+                                <!-- Input Edit Keterangan -->
                                 <div class="col-span-2">
                                     <label class="block text-xs font-bold text-gray-500 mb-1">Keterangan Kematian</label>
                                     <input type="text" name="ket_mati" x-model="editData.ket_mati" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-cemara-500 outline-none" placeholder="Isi penyebab kematian jika ada">

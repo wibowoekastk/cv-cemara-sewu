@@ -97,11 +97,11 @@
                             <h3 class="text-lg font-bold">Identitas Kandang</h3>
                         </div>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
                             <!-- Tanggal (Bisa Backdate) -->
                             <div class="lg:col-span-1">
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Tanggal Input</label>
-                                <input type="date" name="tanggal" id="inputDate" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cemara-500 outline-none transition font-medium" required>
+                                <input type="date" name="tanggal" id="inputDate" onchange="fetchKandangStats()" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cemara-500 outline-none transition font-medium" required>
                             </div>
 
                             <!-- Unit -->
@@ -145,6 +145,15 @@
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Lokasi Farm</label>
                                 <input type="text" id="displayLokasi" class="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed font-medium" placeholder="Otomatis..." readonly>
                             </div>
+
+                            <!-- Umur Ayam (Minggu + Hari) Otomatis Berdasarkan Tanggal Input -->
+                            <div class="lg:col-span-1">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Umur Sekarang</label>
+                                <div class="relative">
+                                    <input type="text" id="displayUmur" class="w-full px-4 py-2.5 bg-blue-50 border border-blue-100 rounded-xl text-blue-800 font-bold text-sm cursor-not-allowed" placeholder="Pilih Kandang..." readonly>
+                                    <i class="ph-fill ph-calendar absolute right-4 top-3 text-blue-400"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -162,7 +171,7 @@
                                 <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex justify-between items-center">
                                     <div>
                                         <span class="text-xs text-gray-500 uppercase font-bold tracking-wide">Populasi Awal</span>
-                                        <div class="text-xs text-gray-400 mt-1">Penyebut Rumus HH</div>
+                                        <div class="text-xs text-gray-400 mt-1">Penyebut Rumus HH & Deplesi</div>
                                     </div>
                                     <input type="hidden" id="stokAwalMaster" value="0"> 
                                     <span class="text-xl font-bold text-gray-800" id="displayStokAwalMaster">-</span>
@@ -189,18 +198,18 @@
                                     </div>
                                 </div>
 
-                                <!-- [BARU] Indikator Deplesi Harian Beranimasi -->
+                                <!-- Indikator Deplesi Harian Beranimasi -->
                                 <div class="mt-2 bg-red-50/50 p-3 rounded-xl border border-red-100 flex justify-between items-center">
                                     <div>
                                         <span class="text-xs text-red-600 font-bold uppercase tracking-wide">Deplesi Harian</span>
-                                        <p class="text-[10px] text-red-400 mt-0.5">(Mati+Afkir) / Populasi Pagi</p>
+                                        <p class="text-[10px] text-red-400 mt-0.5">(Mati+Afkir) / Populasi Awal</p>
                                     </div>
                                     <span class="text-lg font-bold text-red-700 transition-colors duration-300" id="wrapperDeplesi">
                                         <span id="hasilDeplesi">0.00</span>%
                                     </span>
                                 </div>
 
-                                <!-- [UPDATE] Input Keterangan Kematian (Ditambahkan Sesuai Request) -->
+                                <!-- Input Keterangan Kematian -->
                                 <div>
                                     <label class="block text-xs font-semibold text-gray-500 mb-1">Keterangan / Penyebab Kematian</label>
                                     <input type="text" name="ket_mati" placeholder="Contoh: Snot, Terjepit, Prolaps..." class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-cemara-500 outline-none text-sm transition text-gray-700">
@@ -232,7 +241,7 @@
                                 <!-- Input Total Pakan -->
                                 <div class="relative">
                                     <label class="block text-xs font-semibold text-gray-500 mb-1">Total Pakan Harian (Kg)</label>
-                                    <input type="number" step="0.01" id="inputPakan" name="pakan_kg" placeholder="0.00" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-lg" oninput="hitungOtomatis()" required>
+                                    <input type="number" step="0.01" id="inputPakan" name="pakan_kg" placeholder="0.00" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-lg" oninput="hitungOtotalis()" required>
                                     <span class="absolute right-4 top-9 text-sm text-gray-400 font-bold">Kg</span>
                                 </div>
 
@@ -338,13 +347,13 @@
             
             const selectedOption = unitSelect.options[unitSelect.selectedIndex];
 
-            // 1. Reset Kandang & Lokasi
+            // Reset Fields
             kandangSelect.innerHTML = '<option value="" disabled selected>Pilih Kandang...</option>';
             kandangSelect.disabled = true;
             document.getElementById('displayLokasi').value = '';
             document.getElementById('displayBatch').value = '-'; 
+            document.getElementById('displayUmur').value = ''; 
 
-            // 2. Reset Pakan
             pakanSelect.innerHTML = '<option value="" disabled selected>Pilih Pakan...</option>';
             pakanSelect.disabled = true;
 
@@ -371,7 +380,6 @@
                 if (selectedOption.getAttribute('data-pakans')) {
                     const stokPakans = JSON.parse(selectedOption.getAttribute('data-pakans'));
                     let adaStok = false;
-                    
                     stokPakans.forEach(stock => {
                         if (stock.pakan && parseFloat(stock.jumlah_stok) > 0) {
                             const option = document.createElement('option');
@@ -381,12 +389,7 @@
                             adaStok = true;
                         }
                     });
-
-                    if (adaStok) {
-                        pakanSelect.disabled = false;
-                    } else {
-                        pakanSelect.innerHTML = '<option value="" disabled>Stok Pakan Kosong!</option>';
-                    }
+                    if (adaStok) pakanSelect.disabled = false;
                 }
             }
             updatePopulasiAwal();
@@ -394,37 +397,44 @@
 
         function fetchKandangStats() {
             const kandangID = document.getElementById('inputKandang').value;
+            const tanggalInput = document.getElementById('inputDate').value;
+            
             if(!kandangID) return;
 
-            fetch(`/admin/analytic/kandang-stats/${kandangID}`)
+            // Efek loading
+            const displayUmurField = document.getElementById('displayUmur');
+            displayUmurField.value = 'Menghitung...';
+
+            // Mengirimkan parameter ?tanggal= agar backend bisa menghitung umur mundur/maju
+            fetch(`/admin/analytic/kandang-stats/${kandangID}?tanggal=${tanggalInput}`)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('stokAwalMaster').value = data.stok_awal;
                     document.getElementById('populasiSaatIni').value = data.stok_saat_ini;
                     document.getElementById('cumButirPrev').value = data.cum_butir_sebelumnya;
                     document.getElementById('cumKgPrev').value = data.cum_kg_sebelumnya;
-                    
-                    document.getElementById('displayBatch').value = data.batch_name;
+                    document.getElementById('displayBatch').value = data.batch_name || '-';
+
+                    // Menampilkan Umur yang sudah dihitung backend berdasarkan parameter tanggal
+                    displayUmurField.value = data.umur_teks || (data.umur_minggu ? data.umur_minggu + ' Minggu' : '-');
 
                     document.getElementById('displayStokAwalMaster').innerText = data.stok_awal.toLocaleString('id-ID');
                     document.getElementById('displayPopulasiSaatIni').innerText = data.stok_saat_ini.toLocaleString('id-ID');
 
-                    document.getElementById('inputMati').value = '';
-                    document.getElementById('inputAfkir').value = '';
-                    
                     hitungOtomatis(); 
                 })
-                .catch(err => console.error(err));
+                .catch(err => {
+                    console.error(err);
+                    displayUmurField.value = 'Gagal memuat';
+                });
         }
 
         function updatePopulasiAwal() {
              if(!document.getElementById('inputKandang').value) {
-                document.getElementById('stokAwalMaster').value = 0;
-                document.getElementById('populasiSaatIni').value = 0;
                 document.getElementById('displayStokAwalMaster').innerText = '-';
                 document.getElementById('displayPopulasiSaatIni').innerText = '-';
                 document.getElementById('displayBatch').value = '-';
-                hitungOtomatis();
+                document.getElementById('displayUmur').value = '';
                 return;
             }
             fetchKandangStats();
@@ -442,53 +452,26 @@
             let cumButirPrev = parseFloat(document.getElementById('cumButirPrev').value) || 0;
             let cumKgPrev = parseFloat(document.getElementById('cumKgPrev').value) || 0;
 
-            // [BARU] Kalkulasi Deplesi Harian & Smart Warning
-            let deplesiHarian = 0;
-            let textDeplesi = document.getElementById('hasilDeplesi');
+            let deplesiHarian = (stokAwalMaster > 0) ? ((mati + afkir) / stokAwalMaster) * 100 : 0;
+            document.getElementById('hasilDeplesi').innerText = deplesiHarian.toFixed(2);
+
             let wrapperDeplesi = document.getElementById('wrapperDeplesi');
-
-            if (populasiHidup > 0) {
-                deplesiHarian = ((mati + afkir) / populasiHidup) * 100;
-            }
-            textDeplesi.innerText = deplesiHarian.toFixed(2);
-
-            // Logic Warning: Jika kematian di atas 0.1% per hari, teks merah berkedip
             if(deplesiHarian > 0.1) {
-                wrapperDeplesi.classList.remove('text-red-700');
                 wrapperDeplesi.classList.add('text-red-600', 'animate-pulse');
             } else {
-                wrapperDeplesi.classList.add('text-red-700');
                 wrapperDeplesi.classList.remove('text-red-600', 'animate-pulse');
             }
 
-            // Sisa Populasi
-            let sisaPopulasi = populasiHidup - mati - afkir;
-            if (sisaPopulasi < 0) sisaPopulasi = 0;
+            let sisaPopulasi = Math.max(0, populasiHidup - mati - afkir);
+            document.getElementById('hasilKonsumsi').innerText = (sisaPopulasi > 0) ? ((pakanKg * 1000) / sisaPopulasi).toFixed(1) : 0;
+            document.getElementById('hasilFCR').innerText = (telurKg > 0) ? (pakanKg / telurKg).toFixed(2) : '0.00';
+            document.getElementById('hasilBeratPerButir').innerText = (telurButir > 0) ? ((telurKg * 1000) / telurButir).toFixed(1) : 0;
+            document.getElementById('hasilHD').innerText = (sisaPopulasi > 0) ? ((telurButir / sisaPopulasi) * 100).toFixed(1) : 0;
 
-            // Konsumsi
-            let konsumsi = (sisaPopulasi > 0) ? (pakanKg * 1000) / sisaPopulasi : 0;
-            document.getElementById('hasilKonsumsi').innerText = konsumsi.toFixed(1);
-
-            // FCR
-            let fcr = (telurKg > 0) ? pakanKg / telurKg : 0;
-            document.getElementById('hasilFCR').innerText = fcr.toFixed(2);
-
-            // Berat per Butir
-            let beratPerButir = (telurButir > 0) ? (telurKg * 1000) / telurButir : 0;
-            document.getElementById('hasilBeratPerButir').innerText = beratPerButir.toFixed(1);
-
-            // HD%
-            let hd = (sisaPopulasi > 0) ? (telurButir / sisaPopulasi) * 100 : 0;
-            document.getElementById('hasilHD').innerText = hd.toFixed(1);
-
-            // HH
             let totalCumButir = cumButirPrev + telurButir;
             let totalCumKg = cumKgPrev + telurKg;
-            let hhButir = (stokAwalMaster > 0) ? totalCumButir / stokAwalMaster : 0;
-            let hhKg = (stokAwalMaster > 0) ? totalCumKg / stokAwalMaster : 0;
-
-            document.getElementById('hasilHHButir').innerText = hhButir.toFixed(1);
-            document.getElementById('hasilHHKg').innerText = hhKg.toFixed(2);
+            document.getElementById('hasilHHButir').innerText = (stokAwalMaster > 0) ? (totalCumButir / stokAwalMaster).toFixed(1) : 0;
+            document.getElementById('hasilHHKg').innerText = (stokAwalMaster > 0) ? (totalCumKg / stokAwalMaster).toFixed(2) : '0.00';
         }
 
         function resetForm() {
@@ -497,57 +480,40 @@
                 text: "Isian formulir akan dikosongkan.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
                 confirmButtonText: 'Ya, Reset'
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById('dailyInputForm').reset();
-                    // Set date to today
-                    const dateInput = document.getElementById('inputDate');
-                    const today = new Date();
-                    const yyyy = today.getFullYear();
-                    const mm = String(today.getMonth() + 1).padStart(2, '0');
-                    const dd = String(today.getDate()).padStart(2, '0');
-                    dateInput.value = `${yyyy}-${mm}-${dd}`;
-                    
-                    document.getElementById('inputUnit').selectedIndex = 0;
+                    initDate();
                     filterUnitData();
                 }
             })
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        function initDate() {
             const dateInput = document.getElementById('inputDate');
-            const displayDate = document.getElementById('headerDateDisplay');
             const today = new Date();
             const yyyy = today.getFullYear();
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const dd = String(today.getDate()).padStart(2, '0');
             const todayString = `${yyyy}-${mm}-${dd}`;
             
-            if(dateInput) { dateInput.value = todayString; dateInput.max = todayString; } // max=today mencegah input hari esok
-            if(displayDate) {
-                const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
-                displayDate.innerText = today.toLocaleDateString('id-ID', options);
-            }
-            
-            document.getElementById('inputUnit').selectedIndex = 0;
+            if(dateInput) { dateInput.value = todayString; dateInput.max = todayString; } 
+            document.getElementById('headerDateDisplay').innerText = today.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initDate();
             filterUnitData();
         });
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
-            if (sidebar) sidebar.classList.toggle('-translate-x-full');
+            sidebar?.classList.toggle('-translate-x-full');
             if (overlay) {
-                if (overlay.classList.contains('hidden')) {
-                    overlay.classList.remove('hidden');
-                    setTimeout(() => overlay.classList.remove('opacity-0'), 10);
-                } else {
-                    overlay.classList.add('opacity-0');
-                    setTimeout(() => overlay.classList.add('hidden'), 300);
-                }
+                overlay.classList.toggle('hidden');
+                setTimeout(() => overlay.classList.toggle('opacity-0'), 10);
             }
         }
     </script>
