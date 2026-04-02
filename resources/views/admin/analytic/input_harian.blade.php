@@ -40,16 +40,24 @@
         <main class="flex-1 md:ml-64 flex flex-col h-full bg-gray-50 overflow-y-auto w-full transition-all duration-300">
             
             <!-- Header -->
-            <header class="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8 sticky top-0 z-20 shadow-sm">
+            <header class="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-20 shadow-sm">
                 <div>
-                    <div class="flex items-center gap-2 text-gray-500 text-xs mb-1">
+                    <div class="flex items-center gap-2 text-gray-500 text-[10px] md:text-xs mb-1">
                         <span>Analytic</span>
                         <i class="ph-bold ph-caret-right"></i>
                         <span>Input Data</span>
                     </div>
-                    <h2 class="text-2xl font-bold text-gray-800">Input Data Harian</h2>
+                    <h2 class="text-lg md:text-2xl font-bold text-gray-800">Input Data Harian</h2>
                 </div>
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3 md:gap-4">
+                    
+                    <!-- [PERBAIKAN] Hapus "hidden", ganti dengan "flex" agar tombol PASTI MUNCUL -->
+                    <a href="/admin/analytic/input-massal" class="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg text-xs md:text-sm font-semibold shadow hover:bg-blue-700 transition">
+                        <i class="ph-bold ph-table text-lg md:text-base"></i> 
+                        <span class="hidden md:inline">Mode Massal (Mingguan)</span>
+                        <span class="md:hidden">Massal</span>
+                    </a>
+
                     <button onclick="toggleSidebar()" class="md:hidden p-2 text-gray-500 hover:text-cemara-900 rounded-lg">
                         <i class="ph-bold ph-list text-2xl"></i>
                     </button>
@@ -241,7 +249,7 @@
                                 <!-- Input Total Pakan -->
                                 <div class="relative">
                                     <label class="block text-xs font-semibold text-gray-500 mb-1">Total Pakan Harian (Kg)</label>
-                                    <input type="number" step="0.01" id="inputPakan" name="pakan_kg" placeholder="0.00" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-lg" oninput="hitungOtotalis()" required>
+                                    <input type="number" step="0.01" id="inputPakan" name="pakan_kg" placeholder="0.00" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-lg" oninput="hitungOtomatis()" required>
                                     <span class="absolute right-4 top-9 text-sm text-gray-400 font-bold">Kg</span>
                                 </div>
 

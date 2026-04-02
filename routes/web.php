@@ -107,6 +107,12 @@ Route::middleware(['auth'])->group(function () {
             return view('admin.dashboard', compact('produksiHariIni', 'totalPopulasi', 'unitAktif', 'totalUnit', 'totalDeplesi', 'persenDeplesi', 'pakans', 'lokasis', 'units')); 
         })->name('admin.dashboard');
 
+        // Route untuk membuka halaman Input Massal
+        Route::get('/analytic/input-massal', [App\Http\Controllers\AnalyticController::class, 'createMassal'])->name('admin.analytic.massal');
+
+        // Route untuk memproses (menyimpan) data yang dikirim dari Input Massal
+        Route::post('/analytic/input-massal', [App\Http\Controllers\AnalyticController::class, 'storeMassal'])->name('admin.analytic.storeMassal');
+
         // Manajemen Batch
         Route::get('/batch', [BatchController::class, 'index'])->name('admin.batch.index');
         Route::post('/batch/store', [BatchController::class, 'store'])->name('admin.batch.store');

@@ -74,28 +74,52 @@ class AnalyticController extends Controller
 
     private function getChartDataForKandang($kandangId, $mode = 'weekly') 
     {
-        $kandang = Kandang::findOrFail($kandangId);
-        $tglMasuk = $kandang->tgl_masuk ? Carbon::parse($kandang->tgl_masuk) : Carbon::today();
-        $umurAwalMinggu = $kandang->umur_awal ?? 0; 
+        $kandang = Kandang::with('siklusAktif')->findOrFail($kandangId);
+        $siklus = $kandang->siklusAktif;
+
+        // Ambil patokan tanggal dan umur dari siklus/kandang
+        if ($siklus) {
+            $tglMasuk = Carbon::parse($siklus->tanggal_chick_in);
+            $umurAwalMinggu = $siklus->umur_awal_minggu ?? 0;
+        } else {
+            $tglMasuk = $kandang->tgl_masuk ? Carbon::parse($kandang->tgl_masuk) : null;
+            $umurAwalMinggu = $kandang->umur_awal ?? 0;
+        }
+
         $stokAwalPopulasi = $kandang->stok_awal > 0 ? $kandang->stok_awal : 1; 
 
-        $query = DailyRecord::where('kandang_id', $kandangId)->orderBy('tanggal', 'asc');
+        $query = DailyRecord::where('kandang_id', $kandangId);
+        
+        // Filter by siklus jika ada, agar datanya relevan
+        if ($siklus) {
+            $query->where('siklus_id', $siklus->id);
+        }
         
         if ($mode == 'daily') { 
-            $query->limit(30); 
+            // Harian: Ambil 30 hari TERAKHIR agar grafik selalu memunculkan data ter-update
+            $records = $query->orderBy('tanggal', 'desc')->limit(30)->get()->reverse(); 
         } else { 
-            $query->limit(90); 
+            // MINGGUAN: Ambil SEMUA data dalam siklus ini (tanpa dibatasi limit 90 hari)
+            $records = $query->orderBy('tanggal', 'asc')->get();
         }
-        $records = $query->get();
 
         if ($records->isEmpty()) {
             return [ 'labels' => [], 'deplesi' => [], 'produksi' => [], 'feed_intake' => [], 'total_pakan' => [], 'berat_telur' => [], 'fcr' => [], 'body_weight' => [], 'daya_hidup' => [] ];
         }
 
+        // Jika tglMasuk masih kosong, gunakan tanggal dari data paling awal yang diinput
+        if (!$tglMasuk) {
+            $tglMasuk = Carbon::parse($records->first()->tanggal);
+        }
+
         $groupedData = [];
         foreach ($records as $record) {
             $tglRecord = Carbon::parse($record->tanggal);
-            $selisihHari = $tglMasuk->diffInDays($tglRecord);
+            
+            // Hitung Umur Berdasarkan Selisih Hari Sebenarnya dari waktu ayam masuk
+            $selisihHari = $tglMasuk->startOfDay()->diffInDays($tglRecord->startOfDay(), false);
+            
+            // Umur dalam minggu (dibulatkan ke bawah ke minggu terdekat)
             $umurSaatIni = $umurAwalMinggu + floor($selisihHari / 7);
             
             if ($mode == 'daily') {
@@ -103,11 +127,23 @@ class AnalyticController extends Controller
             } elseif ($mode == 'monthly') {
                 $key = $tglRecord->format('M Y'); 
             } else {
-                $key = $umurSaatIni; 
+                // MINGGUAN: Tampilkan Umur secara jujur (tanpa pencegahan min 0 agar titik chart tidak menumpuk)
+                $key = "Umur " . $umurSaatIni . " Mgg"; 
             }
 
             if (!isset($groupedData[$key])) {
-                $groupedData[$key] = [ 'count' => 0, 'tgl_akhir' => $record->tanggal, 'populasi_sum' => 0, 'mati_sum' => 0, 'hdp_sum' => 0, 'pakan_sum' => 0, 'telur_kg_sum' => 0, 'telur_butir_sum' => 0, 'fcr_sum' => 0 ];
+                $groupedData[$key] = [ 
+                    'count' => 0, 
+                    'tgl_akhir' => $record->tanggal, 
+                    'populasi_sum' => 0, 
+                    'mati_sum' => 0, 
+                    'afkir_sum' => 0, 
+                    'hdp_sum' => 0, 
+                    'pakan_sum' => 0, 
+                    'telur_kg_sum' => 0, 
+                    'telur_butir_sum' => 0, 
+                    'fcr_sum' => 0 
+                ];
             }
             $item = &$groupedData[$key];
             $item['count']++;
@@ -117,6 +153,7 @@ class AnalyticController extends Controller
             
             $item['populasi_sum'] += $populasiHariIni; 
             $item['mati_sum'] += $record->mati;
+            $item['afkir_sum'] += $record->afkir;
             $item['hdp_sum'] += $record->hdp;
             $item['pakan_sum'] += $record->pakan_kg;
             $item['telur_kg_sum'] += $record->telur_kg;
@@ -144,9 +181,19 @@ class AnalyticController extends Controller
             $avgPopulasiHidup = $data['populasi_sum'] / $count;
 
             $labels[] = $key;
-            $produksi[] = round($data['hdp_sum'] / $count, 2);
-            $deplesi[] = $avgPopulasiHidup > 0 ? round(($data['mati_sum'] / $avgPopulasiHidup) * 100, 2) : 0;
             
+            // Produksi HDP (Rata-rata Seminggu)
+            $produksi[] = round($data['hdp_sum'] / $count, 2);
+            
+            // [LOGIKA TITIPAN MANDOR: DEPLESI MINGGUAN]
+            if ($mode == 'weekly' || $mode == 'monthly') {
+                $totalMatiSeminggu = $data['mati_sum'] + $data['afkir_sum'];
+                // (Mati Seminggu / Populasi Awal) x 100%
+                $deplesi[] = round(($totalMatiSeminggu / $stokAwalPopulasi) * 100, 3); // 3 desimal agar titiknya terlihat di grafik
+            } else {
+                $deplesi[] = $avgPopulasiHidup > 0 ? round((($data['mati_sum'] + $data['afkir_sum']) / $avgPopulasiHidup) * 100, 2) : 0;
+            }
+
             $daya_hidup[] = round(($avgPopulasiHidup / $stokAwalPopulasi) * 100, 2);
 
             $feed_intake[] = $avgPopulasiHidup > 0 ? round((($data['pakan_sum'] / $count) * 1000) / $avgPopulasiHidup, 1) : 0;
@@ -329,10 +376,135 @@ class AnalyticController extends Controller
         return back()->with('success', 'Laporan Harian berhasil disimpan.');
     }
 
+    // =========================================================================
+    // FITUR BARU: INPUT MASSAL (MAGIC PASTE EXCEL)
+    // =========================================================================
+
+    /**
+     * Menampilkan Halaman Input Massal
+     */
+    public function createMassal(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Membedakan akses jika user adalah mandor (hanya unitnya sendiri) atau admin (semua unit)
+        if ($user->role == 'mandor' && $user->unit_id) {
+            $units = Unit::with('kandangs')->where('id', $user->unit_id)->get();
+            $stokPakanUnit = UnitPakanStock::with('pakan')->where('unit_id', $user->unit_id)->where('jumlah_stok', '>', 0)->get();
+            $view = 'mandor.produksi.input_massal'; // Asumsi view untuk mandor
+        } else {
+            $units = Unit::with('kandangs')->get(); 
+            $stokPakanUnit = UnitPakanStock::with('pakan')->where('jumlah_stok', '>', 0)->get();
+            $view = 'admin.analytic.input_massal'; // View admin seperti di contoh
+        }
+
+        // Cek apakah file view tersedia untuk return, pakai fallback yang ada jika perlu
+        if (view()->exists($view)) {
+            return view($view, compact('units', 'stokPakanUnit'));
+        }
+        
+        // Jika hanya 1 view yang dibikin (misal di admin), otomatis pakai itu
+        return view('admin.analytic.input_massal', compact('units', 'stokPakanUnit'));
+    }
+
+    /**
+     * Memproses Data Input Massal
+     */
+    public function storeMassal(Request $request)
+    {
+        $request->validate([
+            'kandang_id' => 'required|exists:kandangs,id',
+            'pakan_id' => 'required|exists:pakans,id',
+            'data' => 'required|array', 
+            'data.*.tanggal' => 'required|date',
+            'data.*.mati' => 'required|numeric|min:0',
+            'data.*.afkir' => 'required|numeric|min:0',
+            'data.*.pakan_kg' => 'required|numeric|min:0',
+            'data.*.telur_butir' => 'required|numeric|min:0',
+            'data.*.telur_kg' => 'required|numeric|min:0',
+        ]);
+
+        $kandang = Kandang::findOrFail($request->kandang_id);
+        $user = Auth::user();
+        $siklusAktif = $kandang->siklusAktif; 
+        $siklusId = $siklusAktif ? $siklusAktif->id : null;
+        
+        $stokUnit = UnitPakanStock::where('unit_id', $kandang->unit_id)
+                                  ->where('pakan_id', $request->pakan_id)
+                                  ->first();
+
+        $berhasil = 0;
+        $gagal = 0;
+
+        DB::transaction(function () use ($request, $kandang, $user, $stokUnit, $siklusId, &$berhasil, &$gagal) {
+            
+            foreach ($request->data as $row) {
+                // Cek data ganda (mencegah double input)
+                if(DailyRecord::where('kandang_id', $kandang->id)->whereDate('tanggal', $row['tanggal'])->exists()) {
+                    $gagal++;
+                    continue; 
+                }
+
+                // Cek ketersediaan stok pakan (Akan melempar error dan cancel transaksi jika pakan kurang)
+                if ($row['pakan_kg'] > 0) {
+                    if (!$stokUnit || $stokUnit->jumlah_stok < $row['pakan_kg']) {
+                        throw new \Exception("Stok Pakan tidak cukup untuk pemakaian di tanggal " . Carbon::parse($row['tanggal'])->format('d M Y'));
+                    }
+                }
+
+                $populasi = $kandang->stok_saat_ini;
+                
+                $hdp = ($populasi > 0) ? ($row['telur_butir'] / $populasi) * 100 : 0;
+                $fcr = ($row['telur_kg'] > 0) ? ($row['pakan_kg'] / $row['telur_kg']) : 0;
+
+                DailyRecord::create([
+                    'siklus_id' => $siklusId, 
+                    'unit_id' => $kandang->unit_id,
+                    'kandang_id' => $kandang->id,
+                    'user_id' => $user->id,
+                    'tanggal' => $row['tanggal'],
+                    'populasi_awal' => $populasi,
+                    'mati' => $row['mati'],
+                    'afkir' => $row['afkir'],
+                    'ket_mati' => null, 
+                    'telur_butir' => $row['telur_butir'],
+                    'telur_kg' => $row['telur_kg'],
+                    'pakan_id' => $request->pakan_id, 
+                    'pakan_kg' => $row['pakan_kg'],
+                    'fcr' => $fcr,
+                    'hdp' => $hdp,
+                ]);
+
+                $kandang->decrement('stok_saat_ini', $row['mati'] + $row['afkir']);
+
+                if($row['pakan_kg'] > 0) {
+                    $stokUnit->decrement('jumlah_stok', $row['pakan_kg']);
+                    
+                    PakanMutation::create([
+                        'pakan_id' => $request->pakan_id, 
+                        'user_id' => $user->id, 
+                        'dari_unit_id' => $kandang->unit_id, 
+                        'kandang_id' => $kandang->id, 
+                        'tanggal' => $row['tanggal'], 
+                        'jenis_mutasi' => 'pemakaian', 
+                        'jumlah' => $row['pakan_kg'], 
+                        'status' => 'selesai', 
+                        'keterangan' => "Input Harian Massal (Auto)"
+                    ]);
+                }
+                
+                $berhasil++;
+            }
+        });
+
+        return back()->with('success', "Input Massal Selesai! Berhasil menyimpan $berhasil hari. (Di-skip karena data sudah ada: $gagal hari).");
+    }
+
     public function update(Request $request, $id) {
         $record = DailyRecord::with('kandang')->findOrFail($id);
         $request->validate([
             'tanggal'     => 'required|date', 
+            'pakan_id'    => 'required|exists:pakans,id', 
             'pakan_kg'    => 'required|numeric|min:0', 
             'telur_butir' => 'required|numeric|min:0', 
             'telur_kg'    => 'required|numeric|min:0', 
@@ -364,6 +536,7 @@ class AnalyticController extends Controller
             
             $record->update([
                 'tanggal'     => $request->tanggal, 
+                'pakan_id'    => $request->pakan_id,
                 'mati'        => $request->mati, 
                 'afkir'       => $request->afkir, 
                 'ket_mati'    => $request->ket_mati, 
@@ -419,8 +592,22 @@ class AnalyticController extends Controller
 
     private function getDailyRecords(Request $request) {
         $query = DailyRecord::with(['kandang.unit', 'user', 'pakan', 'siklus.batch'])->latest('tanggal');
-        if($request->filled('unit_id')) { $query->where('unit_id', $request->unit_id); }
-        if($request->filled('start_date') && $request->filled('end_date')) { $query->whereBetween('tanggal', [$request->start_date, $request->end_date]); }
+        
+        if($request->filled('unit_id')) { 
+            $query->where('unit_id', $request->unit_id); 
+        }
+        
+        if($request->filled('kandang_id')) { 
+            $query->where('kandang_id', $request->kandang_id); 
+        }
+
+        if($request->filled('pakan_id')) { 
+            $query->where('pakan_id', $request->pakan_id); 
+        }
+
+        if($request->filled('start_date') && $request->filled('end_date')) { 
+            $query->whereBetween('tanggal', [$request->start_date, $request->end_date]); 
+        }
         return $query->paginate(15);
     }
 

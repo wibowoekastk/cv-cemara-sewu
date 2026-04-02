@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Laporan Harian Kandang</title>
     <style>
-        body { font-family: 'Arial', sans-poppins; font-size: 10px; margin: 0; padding: 10px; color: #000; }
+        body { font-family: 'Arial', sans-serif; font-size: 10px; margin: 0; padding: 10px; color: #000; }
         
         .header-container { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; }
         .header-title { font-size: 16px; font-weight: bold; text-transform: uppercase; margin: 0; }
@@ -23,7 +23,7 @@
         .text-left { text-align: left; }
         .font-bold { font-weight: bold; }
         
-        /* Warna Baris Ganjil/Genap (Opsional, tapi bagus untuk baca) */
+        /* Warna Baris Ganjil/Genap */
         tr:nth-child(even) { background-color: #f9f9f9; }
 
         /* Tanda Tangan */
@@ -58,10 +58,35 @@
         </p>
     </div>
 
+    <!-- PENGAMBILAN NAMA FILTER YANG TEPAT UNTUK KOP SURAT -->
+    @php
+        $lokasiTeks = ($request->lokasi && $request->lokasi != 'all') ? ucfirst($request->lokasi) : 'Semua Lokasi';
+        
+        $unitTeks = 'Semua Unit';
+        if ($request->unit && $request->unit != 'all') {
+            $u = \App\Models\Unit::find($request->unit);
+            $unitTeks = $u ? $u->nama_unit : 'ID: ' . $request->unit;
+        }
+
+        $kandangTeks = 'Semua Kandang';
+        if ($request->kandang && $request->kandang != 'all') {
+            $k = \App\Models\Kandang::find($request->kandang);
+            $kandangTeks = $k ? $k->nama_kandang : 'ID: ' . $request->kandang;
+        }
+
+        $batchTeks = 'Semua Batch';
+        if ($request->batch_id && $request->batch_id != 'all') {
+            $b = \App\Models\Batch::find($request->batch_id);
+            $batchTeks = $b ? $b->nama_batch : 'ID: ' . $request->batch_id;
+        }
+    @endphp
+
     <!-- Info Filter -->
     <div style="margin-bottom: 10px; font-size: 11px;">
-        <span style="margin-right: 20px;"><strong>Lokasi:</strong> {{ $request->lokasi != 'all' ? ucfirst($request->lokasi) : 'Semua Lokasi' }}</span>
-        <span><strong>Unit:</strong> {{ $request->unit != 'all' ? 'Unit ID: ' . $request->unit : 'Semua Unit' }}</span>
+        <span style="margin-right: 20px;"><strong>Lokasi:</strong> {{ $lokasiTeks }}</span>
+        <span style="margin-right: 20px;"><strong>Unit:</strong> {{ $unitTeks }}</span>
+        <span style="margin-right: 20px;"><strong>Kandang:</strong> {{ $kandangTeks }}</span>
+        <span><strong>Batch:</strong> {{ $batchTeks }}</span>
     </div>
 
     <table>
@@ -72,7 +97,7 @@
                 <th rowspan="2" width="7%">Tanggal</th>
                 <th rowspan="2" width="9%">Kandang</th>
                 
-                <!-- [BARU] Kolom Batch -->
+                <!-- Kolom Batch -->
                 <th rowspan="2" width="7%">Batch</th>
                 
                 <!-- Group Populasi -->
@@ -115,9 +140,13 @@
         </thead>
         <tbody>
             @php 
-                $grandTotalTelur = 0;
+                $grandTotalTelurButir = 0;
+                $grandTotalTelurKg = 0;
                 $grandTotalPakan = 0;
                 $grandTotalMati = 0;
+                $grandTotalAfkir = 0;
+                $grandTotalHhButir = 0;
+                $grandTotalHhKg = 0;
             @endphp
 
             @forelse($laporanData as $index => $row)
@@ -132,9 +161,13 @@
                 $hhKg = $stokAwal > 0 ? $row->telur_kg / $stokAwal : 0;
                 
                 // Akumulasi Total
-                $grandTotalTelur += $row->telur_kg;
+                $grandTotalTelurButir += $row->telur_butir;
+                $grandTotalTelurKg += $row->telur_kg;
                 $grandTotalPakan += $row->pakan_kg;
-                $grandTotalMati += ($row->mati + $row->afkir);
+                $grandTotalMati += $row->mati;
+                $grandTotalAfkir += $row->afkir;
+                $grandTotalHhButir += $hhButir;
+                $grandTotalHhKg += $hhKg;
             @endphp
             <tr>
                 <td class="text-center">{{ $index + 1 }}</td>
@@ -144,7 +177,7 @@
                     <span style="font-size: 8px;">{{ $row->kandang->unit->nama_unit ?? '' }}</span>
                 </td>
                 
-                <!-- [BARU] Isi Kolom Batch -->
+                <!-- Isi Kolom Batch -->
                 <td class="text-center" style="font-size: 8px;">
                     @if($row->siklus)
                         {{ $row->siklus->tanggal_chick_in->format('Y') }}<br>
@@ -178,8 +211,7 @@
             </tr>
             @empty
             <tr>
-                <!-- Update colspan karena tambah 1 kolom -->
-                <td colspan="16" class="text-center" style="padding: 20px;">Tidak ada data laporan pada periode ini.</td>
+                <td colspan="18" class="text-center" style="padding: 20px;">Tidak ada data laporan pada periode dan filter ini.</td>
             </tr>
             @endforelse
         </tbody>
@@ -188,36 +220,35 @@
         @if(count($laporanData) > 0)
         <tfoot>
             <tr style="background-color: #e0e0e0; font-weight: bold;">
-                <!-- Update colspan dari 3 jadi 4 karena ada kolom Batch -->
                 <td colspan="4" class="text-right">TOTAL / RATA-RATA</td>
                 
-                <!-- Populasi (Total Pengurangan) -->
+                <!-- Populasi -->
                 <td></td>
-                <td class="text-center">{{ $laporanData->sum('mati') }}</td>
-                <td class="text-center">{{ $laporanData->sum('afkir') }}</td>
+                <td class="text-center text-red-600">{{ number_format($grandTotalMati) }}</td>
+                <td class="text-center">{{ number_format($grandTotalAfkir) }}</td>
                 <td></td>
                 
                 <!-- Telur -->
-                <td class="text-right">{{ number_format($laporanData->sum('telur_butir')) }}</td>
-                <td class="text-right">{{ number_format($grandTotalTelur, 2) }}</td>
-                <td></td>
+                <td class="text-right">{{ number_format($grandTotalTelurButir) }}</td>
+                <td class="text-right">{{ number_format($grandTotalTelurKg, 2) }}</td>
+                <td class="text-right">{{ $grandTotalTelurButir > 0 ? number_format(($grandTotalTelurKg * 1000) / $grandTotalTelurButir, 1) : 0 }}</td>
                 
                 <!-- Pakan -->
                 <td></td>
                 <td class="text-right">{{ number_format($grandTotalPakan, 1) }}</td>
                 <td></td>
                 
-                <!-- Performance (Rata-rata) -->
+                <!-- Performance -->
                 <td class="text-center">{{ number_format($laporanData->avg('hdp'), 1) }}%</td>
-                <td></td>
-                <td></td>
-                <td class="text-center">{{ number_format($laporanData->avg('fcr'), 2) }}</td>
+                <td class="text-center text-blue-600">{{ number_format($grandTotalHhButir, 3) }}</td>
+                <td class="text-center text-blue-600">{{ number_format($grandTotalHhKg, 3) }}</td>
+                <td class="text-center font-bold">{{ $grandTotalTelurKg > 0 ? number_format($grandTotalPakan / $grandTotalTelurKg, 2) : 0 }}</td>
             </tr>
         </tfoot>
         @endif
     </table>
 
-    <!-- [BARU] KOTAK DATA TAMBAHAN MANUAL -->
+    <!-- KOTAK DATA TAMBAHAN MANUAL -->
     @if(request('manual_peti') || request('manual_pecah') || request('manual_konsumsi'))
     <div class="manual-info-box">
         <h4>Catatan Tambahan (Manual)</h4>
